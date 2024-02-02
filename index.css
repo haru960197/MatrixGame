@@ -1,0 +1,85 @@
+.square {
+    position: relative;
+    background: rgb(89, 192, 89);
+    border: 1px solid rgb(68, 68, 68);
+    color: black;
+    float: left;
+    font-size: 30px;
+    font-weight: bold;
+    line-height: 34px;
+    height: 34px;
+    width: 34px;
+    margin-right: -1px;
+    margin-top: -1px;
+    padding: 0;
+    text-align: center;
+}
+
+.square.human-add-mode:hover {
+    background: rgb(204, 238, 91);
+}
+
+.board-row:after {
+    clear: both;
+    /* 表が正方形になるように、変なところで改行されないように。 */
+    content: '';
+    display: table;
+    /* 表形式で表示させる */
+}
+
+.above-square {
+    position: absolute;
+    bottom: 30px;
+}
+
+.balloon2 {
+    position: relative;
+    display: inline-block;
+    margin: 1.5em 0;
+    padding: 6px 4px;
+    min-width: 120px;
+    max-width: 100%;
+    color: #555;
+    font-size: 12px;
+    background: #FFF;
+    border: solid 3px #555;
+    box-sizing: border-box;
+}
+
+/* 吹き出しの下の三角形 */
+.balloon2:before {
+    content: "";
+    position: absolute;
+    bottom: -19px;
+    left: 15%;
+    margin-left: -12.7px;
+
+    /* 三角形の底辺の長さ */
+    border: 10px solid transparent;
+    /* 三角形の高さと色 */
+    border-top: 10px solid #FFF;
+    z-index: 2;
+}
+
+/* 吹き出しの下の三角形（下地） */
+.balloon2:after {
+    content: "";
+    position: absolute;
+    bottom: -26px;
+    left: 17%;
+    margin-left: -17px;
+
+    /* 三角形の底辺の長さ */
+    border: 12px solid transparent;
+    /* 三角形の高さと色 */
+    border-top: 12px solid #555;
+    z-index: 1;
+}
+
+.balloon2 p {
+    margin: 0;
+    padding: 0;
+
+    /* 行間 */
+    line-height: 14px;
+}
