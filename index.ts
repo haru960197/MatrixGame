@@ -117,6 +117,11 @@ function handleClickSquare(x: number, y: number): void {
     }
 }
 
+/**
+ * 人の情報を表示する吹き出し要素を返す
+ * @param human 情報を表示する対象
+ * @returns 吹き出しの<div>要素
+ */
 function createBalloon(human: Human): HTMLDivElement {
     const divEl = document.createElement("div");
     divEl.className = "above-square";
@@ -243,10 +248,16 @@ function exitAddHumanMode(): void {
     }
 }
 
+/**
+ * 吹き出しを表示する人を選択するモードに遷移する
+ */
 function enterSelectHumanMode(): void {
     gameState.mode = 'selectHuman';
 }
 
+/**
+ * ニュートラルモードに遷移する
+ */
 function exitSelectHumanMode(): void {
     gameState.mode = 'neutral';
 }
