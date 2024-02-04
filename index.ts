@@ -98,7 +98,7 @@ function handleClickSquare(x: number, y: number): void {
             // 盤面を更新する
             drawField();
             // ヒト追加モードを抜ける
-            exitHumanAddMode();
+            exitAddHumanMode();
             break;
         case 'selectHuman':
             // 指定の場所に人がいなければ何もしない
@@ -212,7 +212,7 @@ function createRandomHuman(): void {
 /**
  * 位置の選択モードに遷移し、Square上でホバーすると色が変わるようになる
  */
-function enterHumanAddMode(): void {
+function enterAddHumanMode(): void {
     for (let i = 0; i < FIELD_SIZE; i++) {
         for (let j = 0; j < FIELD_SIZE; j++) {
             const squareEl = document.getElementById("square-" + (FIELD_SIZE * i + j));
@@ -229,7 +229,7 @@ function enterHumanAddMode(): void {
 /**
  * ニュートラルモードに遷移し、Square上でホバーしても色が変わらないようにする
  */
-function exitHumanAddMode(): void {
+function exitAddHumanMode(): void {
     for (let i = 0; i < FIELD_SIZE; i++) {
         for (let j = 0; j < FIELD_SIZE; j++) {
             const squareEl = document.getElementById("square-" + (FIELD_SIZE * i + j));
