@@ -2,7 +2,7 @@
 document.addEventListener("DOMContentLoaded", (e) => {
     setInterval(() => {
         // 1秒ごとに盤面を更新する
-        // drawField()
+        drawField()
     }, 1000);
 
     initGameState();
@@ -29,6 +29,7 @@ class Human {
     job: Job;
     color: string;
     character: Character;
+    isSelected: boolean;
 
     constructor(
         name: string = `Human${Human.humanNum}`,
@@ -36,6 +37,7 @@ class Human {
         job: Job = "farmer",
         color: string = "#FF0000",
         character: Character = { wisdom: 0.5 },
+        isSelected: boolean = false,
     ) {
         Human.humanNum++;
         this.name = name;
@@ -43,6 +45,7 @@ class Human {
         this.job = job;
         this.color = color;
         this.character = character;
+        this.isSelected = isSelected;
     }
 }
 
@@ -56,7 +59,7 @@ type SquareState = {
     humans: Human[];
 }
 
-type InterfaceMode = "neutral" | "addHuman";
+type InterfaceMode = "neutral" | "addHuman" | "selectHuman";
 
 type GameState = {
     time: Time;
@@ -92,23 +95,39 @@ function handleClickSquare(x: number, y: number): void {
         case 'addHuman':
             // 指定の場所に人を追加する
             addHuman(x, y, new Human());
+            // 盤面を更新する
+            drawField();
             // ヒト追加モードを抜ける
             exitHumanAddMode();
+            break;
+        case 'selectHuman':
+            // 指定の場所に人がいなければ何もしない
+            if (gameState.field[FIELD_SIZE * y + x].humans.length == 0) {
+                return;
+            }
+            // 指定の場所の人の選択状態を変更する
+            // （複数人の場合はリストの先頭）
+            gameState.field[FIELD_SIZE * y + x].humans[0].isSelected =
+                !gameState.field[FIELD_SIZE * y + x].humans[0].isSelected;
+            // 盤面を更新する
+            drawField();
+            // 選択モードを抜ける
+            exitSelectHumanMode();
             break;
     }
 }
 
-function createBalloon(): HTMLDivElement {
+function createBalloon(human: Human): HTMLDivElement {
     const divEl = document.createElement("div");
     divEl.className = "above-square";
     const balloonEl = document.createElement("div");
     balloonEl.className = "balloon2";
     const messageEl = document.createElement("p");
     messageEl.innerText =
-    `名前：ほげほげ
-    HP：100
-    役職：ふがふが
-    性格：ぴよぴよ`;
+    `名前：${human.name}
+    HP：${human.hp}
+    役職：${human.job}
+    性格：${human.character}`;
     balloonEl.appendChild(messageEl);
     divEl.appendChild(balloonEl);
 
@@ -117,7 +136,6 @@ function createBalloon(): HTMLDivElement {
 
 /**
  * FIELD_SIZE * FIELD_SIZE の盤面を作成する
- * 各マスは吹き出しを子要素に持つ
  */
 function createField(): void {
     const fieldEl = document.getElementById("field");
@@ -126,28 +144,26 @@ function createField(): void {
     }
 
     for (let i = 0; i < FIELD_SIZE; i++) {
+        // 行の要素を作成
         const lineEl = document.createElement("div");
         lineEl.className = "board-row";
         for (let j = 0; j < FIELD_SIZE; j++) {
+            // 各行の列の要素を作成
             const squareEl = document.createElement("button");
             squareEl.className = "square";
             squareEl.id = "square-" + (FIELD_SIZE * i + j);
             squareEl.onclick = () => handleClickSquare(j, i);
-
-            /* 子要素として吹き出しを追加する */
-            if (i == 5 && j == 2) {
-                const balloonEl = createBalloon();
-                squareEl.appendChild(balloonEl);
-            }
-            
+            // 行の子要素にする
             lineEl.appendChild(squareEl);
         }
+        // 行の要素を子要素にする
         fieldEl.appendChild(lineEl);
     }
 }
 
 /**
  * gameStateに基づいて盤面を更新する
+ * 選択中の人の上には吹き出しを表示する
  */
 function drawField(): void {
     // マスに書かれる文字列
@@ -165,7 +181,13 @@ function drawField(): void {
             const squareEl = document.getElementById("square-" + (FIELD_SIZE * i + j));
             if (!squareEl)
                 throw new Error(`square-${FIELD_SIZE * i + j} was not found.`);
+            // 各マスの文字列を更新
             squareEl.textContent = textFromState(state);
+            // 選択中の人がいるマスなら上に吹き出しを表示させる
+            if (state.humans.length > 0 && state.humans[0].isSelected) {
+                const balloonEl = createBalloon(state.humans[0]);
+                squareEl.appendChild(balloonEl);
+            }
         }
     }
 }
@@ -221,6 +243,10 @@ function exitHumanAddMode(): void {
     }
 }
 
-function handleClick(): void {
-    enterHumanAddMode();
+function enterSelectHumanMode(): void {
+    gameState.mode = 'selectHuman';
+}
+
+function exitSelectHumanMode(): void {
+    gameState.mode = 'neutral';
 }
