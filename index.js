@@ -10,8 +10,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
 /* 盤面のサイズ */
 var FIELD_SIZE = 8;
 var Human = /** @class */ (function () {
-    function Human(name, hp, job, color, character, isSelected) {
+    function Human(name, pos, hp, job, color, character, isSelected) {
         if (name === void 0) { name = "Human".concat(Human.humanNum); }
+        if (pos === void 0) { pos = { x: 0, y: 0 }; }
         if (hp === void 0) { hp = 100; }
         if (job === void 0) { job = "farmer"; }
         if (color === void 0) { color = "#FF0000"; }
@@ -19,19 +20,35 @@ var Human = /** @class */ (function () {
         if (isSelected === void 0) { isSelected = false; }
         Human.humanNum++;
         this.name = name;
+        this.pos = pos;
         this.hp = hp;
         this.job = job;
         this.color = color;
         this.character = character;
         this.isSelected = isSelected;
     }
+    Object.defineProperty(Human.prototype, "pos", {
+        get: function () {
+            return this._pos;
+        },
+        set: function (newPos) {
+            if (newPos.x < 0 || FIELD_SIZE <= newPos.x
+                || newPos.y < 0 || FIELD_SIZE <= newPos.y) {
+                throw new Error('Position must be 0 <= x < FIELD_SIZE');
+            }
+            this._pos = newPos;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Human.humanNum = 1;
     return Human;
 }());
 var gameState = {
     time: { d: 1, h: 14, m: 30 },
     mode: "neutral",
-    field: Array(FIELD_SIZE * FIELD_SIZE)
+    field: Array(FIELD_SIZE * FIELD_SIZE),
+    humans: [],
 };
 /**
  * gameStateを初期化する
@@ -53,7 +70,9 @@ function handleClickSquare(x, y) {
             break;
         case 'addHuman':
             // 指定の場所に人を追加する
-            addHuman(x, y, new Human());
+            var newHuman = new Human();
+            newHuman.pos = { x: x, y: y };
+            addHuman(newHuman);
             // 盤面を更新する
             drawField();
             // ヒト追加モードを抜ける
@@ -124,7 +143,7 @@ function createField() {
     }
 }
 /**
- * gameStateに基づいて盤面を更新する
+ * gameState.fieldに基づいて盤面を更新する
  * 選択中の人の上には吹き出しを表示する
  */
 function drawField() {
@@ -154,18 +173,21 @@ function drawField() {
     }
 }
 /**
- * フィールド上の指定位置に人を追加する
+ * 人を追加
  */
-function addHuman(x, y, newHuman) {
+function addHuman(newHuman) {
+    var _a = newHuman.pos, x = _a.x, y = _a.y;
+    gameState.humans.push(newHuman);
     gameState.field[FIELD_SIZE * y + x].humans.push(newHuman);
 }
 /**
- * 盤面上のランダムな位置に一人生成する
+ * ランダムな位置を生成し、返す
+ * @returns [x, y]
  */
-function createRandomHuman() {
+function createRandomPos() {
     var x = Math.floor(Math.random() * FIELD_SIZE);
     var y = Math.floor(Math.random() * FIELD_SIZE);
-    addHuman(x, y, new Human());
+    return { x: x, y: y };
 }
 /**
  * 位置の選択モードに遷移し、Square上でホバーすると色が変わるようになる

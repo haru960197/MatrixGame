@@ -18,6 +18,11 @@ interface HTMLEvent<T extends EventTarget> extends Event {
 
 type Job = 'farmer' | 'merchant';
 
+type Postion = {
+    x: number,
+    y: number,
+}
+
 type Character = {
     wisdom: number;
 }
@@ -25,14 +30,28 @@ type Character = {
 class Human {
     static humanNum = 1;
     name: string;
+    private _pos: Postion;
     hp: number;
     job: Job;
     color: string;
     character: Character;
     isSelected: boolean;
 
+    get pos(): Postion {
+        return this._pos;
+    }
+
+    set pos(newPos: Postion) {
+        if (newPos.x < 0 || FIELD_SIZE <= newPos.x
+            || newPos.y < 0 || FIELD_SIZE <= newPos.y) {
+            throw new Error('Position must be 0 <= x < FIELD_SIZE');
+        }
+        this._pos = newPos;
+    }
+
     constructor(
         name: string = `Human${Human.humanNum}`,
+        pos: Postion = {x: 0, y: 0},
         hp: number = 100,
         job: Job = "farmer",
         color: string = "#FF0000",
@@ -41,6 +60,7 @@ class Human {
     ) {
         Human.humanNum++;
         this.name = name;
+        this.pos = pos;
         this.hp = hp;
         this.job = job;
         this.color = color;
@@ -65,12 +85,14 @@ type GameState = {
     time: Time;
     mode: InterfaceMode;
     field: SquareState[];
+    humans: Human[];
 }
 
 let gameState: GameState = {
     time: { d: 1, h: 14, m: 30 },
     mode: "neutral",
-    field: Array<SquareState>(FIELD_SIZE * FIELD_SIZE)
+    field: Array<SquareState>(FIELD_SIZE * FIELD_SIZE),
+    humans: [],
 }
 
 /**
@@ -94,7 +116,9 @@ function handleClickSquare(x: number, y: number): void {
             break;
         case 'addHuman':
             // 指定の場所に人を追加する
-            addHuman(x, y, new Human());
+            const newHuman = new Human();
+            newHuman.pos = {x, y};
+            addHuman(newHuman);
             // 盤面を更新する
             drawField();
             // ヒト追加モードを抜ける
@@ -167,7 +191,7 @@ function createField(): void {
 }
 
 /**
- * gameStateに基づいて盤面を更新する
+ * gameState.fieldに基づいて盤面を更新する
  * 選択中の人の上には吹き出しを表示する
  */
 function drawField(): void {
@@ -198,20 +222,22 @@ function drawField(): void {
 }
 
 /**
- * フィールド上の指定位置に人を追加する
+ * 人を追加
  */
-function addHuman(x: number, y: number, newHuman: Human) {
+function addHuman(newHuman: Human) {
+    const {x, y} = newHuman.pos;
+    gameState.humans.push(newHuman);
     gameState.field[FIELD_SIZE * y + x].humans.push(newHuman);
 }
 
 /**
- * 盤面上のランダムな位置に一人生成する
+ * ランダムな位置を生成し、返す
+ * @returns [x, y]
  */
-function createRandomHuman(): void {
+function createRandomPos(): Postion {
     const x = Math.floor(Math.random() * FIELD_SIZE);
     const y = Math.floor(Math.random() * FIELD_SIZE);
-
-    addHuman(x, y, new Human());
+    return {x, y};
 }
 
 /**
