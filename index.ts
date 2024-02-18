@@ -18,7 +18,7 @@ interface HTMLEvent<T extends EventTarget> extends Event {
 
 type Job = 'farmer' | 'merchant';
 
-type Postion = {
+type Position = {
     x: number,
     y: number,
 }
@@ -30,28 +30,64 @@ type Character = {
 class Human {
     static humanNum = 1;
     name: string;
-    private _pos: Postion;
+    private _pos: Position;
+    private posQueue: Position[];
     hp: number;
     job: Job;
     color: string;
     character: Character;
     isSelected: boolean;
 
-    get pos(): Postion {
+    get pos(): Position {
         return this._pos;
     }
 
-    set pos(newPos: Postion) {
+    set pos(newPos: Position) {
         if (newPos.x < 0 || FIELD_SIZE <= newPos.x
             || newPos.y < 0 || FIELD_SIZE <= newPos.y) {
             throw new Error('Position must be 0 <= x < FIELD_SIZE');
         }
         this._pos = newPos;
+        // fieldを更新する
+        gameState.field[FIELD_SIZE * newPos.y + newPos.x].humans.push(this);
+    }
+
+    /**
+     * posQueueに、未来の座標を追加する
+     * @param pos 追加する座標
+     */
+    pushPos(pos: Position): void {
+        if (pos.x < 0 || FIELD_SIZE <= pos.x
+            || pos.y < 0 || FIELD_SIZE <= pos.y) {
+            throw new Error('Position must be 0 <= x < FIELD_SIZE');
+        }
+        this.posQueue.push(pos);
+    }
+
+    /**
+     * posQueueに、未来の座標のリストを追加する
+     * @param posArray 追加する座標のリスト
+     */
+    pushPosArray(posArray: Position[]) {
+        posArray.forEach((pos) => this.pushPos(pos));
+    }
+
+    /**
+     * 1単位時間過ごす
+     */
+    spendTime(): void {
+        if (this.posQueue.length == 0) {
+            // TODO : posQueueが空なので、未来の予定を決める
+        }
+        // 位置を更新する
+        this.pos = this.posQueue[0];
+        this.posQueue.shift();
+        // TODO : hpを更新する
     }
 
     constructor(
         name: string = `Human${Human.humanNum}`,
-        pos: Postion = {x: 0, y: 0},
+        pos: Position = {x: 0, y: 0},
         hp: number = 100,
         job: Job = "farmer",
         color: string = "#FF0000",
@@ -61,6 +97,7 @@ class Human {
         Human.humanNum++;
         this.name = name;
         this.pos = pos;
+        this.posQueue = [];
         this.hp = hp;
         this.job = job;
         this.color = color;
@@ -234,7 +271,7 @@ function addHuman(newHuman: Human) {
  * ランダムな位置を生成し、返す
  * @returns [x, y]
  */
-function createRandomPos(): Postion {
+function createRandomPos(): Position {
     const x = Math.floor(Math.random() * FIELD_SIZE);
     const y = Math.floor(Math.random() * FIELD_SIZE);
     return {x, y};

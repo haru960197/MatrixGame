@@ -21,6 +21,7 @@ var Human = /** @class */ (function () {
         Human.humanNum++;
         this.name = name;
         this.pos = pos;
+        this.posQueue = [];
         this.hp = hp;
         this.job = job;
         this.color = color;
@@ -37,10 +38,43 @@ var Human = /** @class */ (function () {
                 throw new Error('Position must be 0 <= x < FIELD_SIZE');
             }
             this._pos = newPos;
+            // fieldを更新する
+            gameState.field[FIELD_SIZE * newPos.y + newPos.x].humans.push(this);
         },
         enumerable: false,
         configurable: true
     });
+    /**
+     * posQueueに、未来の座標を追加する
+     * @param pos 追加する座標
+     */
+    Human.prototype.pushPos = function (pos) {
+        if (pos.x < 0 || FIELD_SIZE <= pos.x
+            || pos.y < 0 || FIELD_SIZE <= pos.y) {
+            throw new Error('Position must be 0 <= x < FIELD_SIZE');
+        }
+        this.posQueue.push(pos);
+    };
+    /**
+     * posQueueに、未来の座標のリストを追加する
+     * @param posArray 追加する座標のリスト
+     */
+    Human.prototype.pushPosArray = function (posArray) {
+        var _this = this;
+        posArray.forEach(function (pos) { return _this.pushPos(pos); });
+    };
+    /**
+     * 1単位時間過ごす
+     */
+    Human.prototype.spendTime = function () {
+        if (this.posQueue.length == 0) {
+            // TODO : posQueueが空なので、未来の予定を決める
+        }
+        // 位置を更新する
+        this.pos = this.posQueue[0];
+        this.posQueue.shift();
+        // TODO : hpを更新する
+    };
     Human.humanNum = 1;
     return Human;
 }());
