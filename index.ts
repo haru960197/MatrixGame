@@ -48,8 +48,6 @@ class Human {
             throw new Error('Position must be 0 <= x < FIELD_SIZE');
         }
         this._pos = newPos;
-        // fieldを更新する
-        gameState.field[FIELD_SIZE * newPos.y + newPos.x].humans.push(this);
     }
 
     /**
