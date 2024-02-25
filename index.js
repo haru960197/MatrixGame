@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
         // 1秒ごとに盤面を更新する
         drawField();
     }, 1000);
-    initGameState();
     createField();
 });
 /* 盤面のサイズ */
@@ -12,19 +11,8 @@ var FIELD_SIZE = 8;
 var gameState = {
     time: { d: 1, h: 14, m: 30 },
     mode: "neutral",
-    field: Array(FIELD_SIZE * FIELD_SIZE),
     humans: [],
 };
-/**
- * gameStateを初期化する
- */
-function initGameState() {
-    for (var i = 0; i < FIELD_SIZE; i++) {
-        for (var j = 0; j < FIELD_SIZE; j++) {
-            gameState.field[FIELD_SIZE * i + j] = { humans: [] };
-        }
-    }
-}
 /**
  * Squareがクリックされたときに呼ばれ、現在のモードに従って処理を行う
  */
@@ -44,14 +32,14 @@ function handleClickSquare(x, y) {
             exitAddHumanMode();
             break;
         case 'selectHuman':
+            var humans = getHumansFromPos({ x: x, y: y });
             // 指定の場所に人がいなければ何もしない
-            if (gameState.field[FIELD_SIZE * y + x].humans.length == 0) {
+            if (humans.length == 0) {
                 return;
             }
-            // 指定の場所の人の選択状態を変更する
+            // 指定の場所の人の選択状態を反転させる
             // （複数人の場合はリストの先頭）
-            gameState.field[FIELD_SIZE * y + x].humans[0].isSelected =
-                !gameState.field[FIELD_SIZE * y + x].humans[0].isSelected;
+            humans[0].isSelected = !humans[0].isSelected;
             // 盤面を更新する
             drawField();
             // 選択モードを抜ける
@@ -108,34 +96,40 @@ function createField() {
     }
 }
 /**
- * gameState.fieldに基づいて盤面を更新する
- * 選択中の人の上には吹き出しを表示する
+ * 盤面をリセットする（すべてのマスを空文字列にする）
  */
-function drawField() {
-    // マスに書かれる文字列
-    var textFromState = function (state) {
-        if (state.humans.length > 0) {
-            return "○";
-        }
-        else {
-            return "";
-        }
-    };
+function resetField() {
     for (var i = 0; i < FIELD_SIZE; i++) {
         for (var j = 0; j < FIELD_SIZE; j++) {
-            var state = gameState.field[FIELD_SIZE * i + j];
             var squareEl = document.getElementById("square-" + (FIELD_SIZE * i + j));
             if (!squareEl)
                 throw new Error("square-".concat(FIELD_SIZE * i + j, " was not found."));
-            // 各マスの文字列を更新
-            squareEl.textContent = textFromState(state);
-            // 選択中の人がいるマスなら上に吹き出しを表示させる
-            if (state.humans.length > 0 && state.humans[0].isSelected) {
-                var balloonEl = createBalloon(state.humans[0]);
-                squareEl.appendChild(balloonEl);
-            }
+            // 各マスの文字列をから文字列にリセット
+            squareEl.textContent = "";
         }
     }
+}
+/**
+ * gameStateに従って盤面を更新する
+ * 選択中の人の上には吹き出しを表示する
+ */
+function drawField() {
+    // 盤面をリセットする
+    resetField();
+    gameState.humans.forEach(function (human) {
+        var _a = human.pos, x = _a.x, y = _a.y;
+        var squareEl = document.getElementById("square-" + (FIELD_SIZE * y + x));
+        if (!squareEl) {
+            throw new Error("square-".concat(FIELD_SIZE * y + x, " was not found."));
+        }
+        // マスの文字列を更新
+        squareEl.textContent = "○";
+        // 人が選択中ならマスの上に吹き出しを表示する
+        if (human.isSelected) {
+            var balloonEl = createBalloon(human);
+            squareEl.appendChild(balloonEl);
+        }
+    });
 }
 /**
  * 人を追加
@@ -143,7 +137,6 @@ function drawField() {
 function addHuman(newHuman) {
     var _a = newHuman.pos, x = _a.x, y = _a.y;
     gameState.humans.push(newHuman);
-    gameState.field[FIELD_SIZE * y + x].humans.push(newHuman);
 }
 /**
  * ランダムな位置を生成し、返す
@@ -153,6 +146,20 @@ function createRandomPos() {
     var x = Math.floor(Math.random() * FIELD_SIZE);
     var y = Math.floor(Math.random() * FIELD_SIZE);
     return { x: x, y: y };
+}
+/**
+ * ある座標にいる人の検索し、配列にして返す
+ * @param pos 座標
+ * @returns その座標にいる人の配列
+ */
+function getHumansFromPos(pos) {
+    var retHumans = [];
+    gameState.humans.forEach(function (human) {
+        if (human.pos.x == pos.x && human.pos.y == pos.y) {
+            retHumans.push(human);
+        }
+    });
+    return retHumans;
 }
 /**
  * 位置の選択モードに遷移し、Square上でホバーすると色が変わるようになる

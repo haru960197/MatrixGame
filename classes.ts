@@ -70,15 +70,10 @@ type Time = {
     m: number;
 }
 
-type SquareState = {
-    humans: Human[];
-}
-
 type InterfaceMode = "neutral" | "addHuman" | "selectHuman";
 
 type GameState = {
     time: Time;
     mode: InterfaceMode;
-    field: SquareState[];
     humans: Human[];
 }
