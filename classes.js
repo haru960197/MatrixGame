@@ -2,19 +2,22 @@ var Task = /** @class */ (function () {
     function Task() {
     }
     Task.handleSleep = function (human) {
-        // 一定確率で寝るのをやめる
-        if (5 < Math.floor(Math.random() * 10)) {
-            // TODO : 現在の時間を考慮する
-            human.task = null;
-            return;
-        }
-        if (human.pos.x === human.homePos.x && human.pos.y === human.homePos.y) {
-            // 家にいれば寝たまま何もしない
-            return;
+        if (5 < gameState.time.h && gameState.time.h < 16) {
+            // 朝
+            if (6 < Math.floor(Math.random() * 10))
+                // 一定確率で起きる
+                human.task = null;
         }
         else {
-            // 出先なので、家に帰る
-            human.headToDest(human.homePos);
+            // 夜
+            if (human.pos.x === human.homePos.x && human.pos.y === human.homePos.y) {
+                // 家にいれば寝たまま何もしない
+                return;
+            }
+            else {
+                // 出先なので、家に帰る
+                human.headToDest(human.homePos);
+            }
         }
     };
     Task.handleWalking = function (human) {
@@ -89,18 +92,16 @@ var Human = /** @class */ (function () {
      * ランダムにタスクを決める
      */
     Human.prototype.determineTask = function () {
-        // 0 ~ 10 のランダムな値を取得
-        var r = Math.floor(Math.random() * 10);
         // TODO タスクの数を増やす
         // TODO タスクを現在のパラメータに従って決めるように変更
-        if (r < 5) {
+        if (16 < gameState.time.h) {
             // 寝る
             console.log("眠ります");
             this.task = { what: 'sleep', where: this.homePos };
         }
-        else if (r < 10) {
+        else {
             // 散歩する
-            console.log("散歩します");
+            console.log("(5, 5)へ向かいます");
             this.task = { what: 'walking', where: { x: 5, y: 5 } };
         }
     };
@@ -112,8 +113,16 @@ var Human = /** @class */ (function () {
         var INF = 100000;
         var V = FIELD_SIZE * FIELD_SIZE;
         // 隣接行列を作成
-        var cost = Array.from({ length: V })
-            .map(function (n) { return Array.from({ length: V }).map(function (n) { return INF; }); });
+        // const cost: number[][] = Array.from({ length: V })
+        //                             .map(n => Array.from({ length: V }).map(n => INF));
+        var cost = [];
+        for (var i = 0; i < V; i++) {
+            var subArray = [];
+            for (var j = 0; j < V; j++) {
+                subArray.push(INF);
+            }
+            cost.push(subArray);
+        }
         for (var y = 0; y < FIELD_SIZE; y++) {
             for (var x = 0; x < FIELD_SIZE; x++) {
                 if (y == 0 && x == 0) {
@@ -169,31 +178,42 @@ var Human = /** @class */ (function () {
             }
         }
         // 現在の座標から目的地の座標までの最短経路をdijkstraで求める
-        var d = Array.from({ length: V }).map(function (n) { return INF; });
-        var used = Array.from({ length: V }).map(function (n) { return false; });
+        // const d: number[] = Array.from({ length: V }).map(n => INF);
+        var d = [];
+        for (var i = 0; i < V; i++)
+            d.push(INF);
+        // const used: boolean[] = Array.from({ length: V }).map(n => false);
+        var used = [];
+        for (var i = 0; i < V; i++)
+            used.push(false);
         d[FIELD_SIZE * this.pos.y + this.pos.x] = 0;
-        var prevPos = Array.from({ length: V }).map(function (n) { return ({ x: -1, y: -1 }); }); // 最短経路の直前の頂点
+        // const prevPos: Position[] = Array.from({ length: V }).map(n => ({ x: -1, y: -1 })); // 最短経路の直前の頂点
+        var prevPos = [];
+        for (var i = 0; i < V; i++)
+            prevPos.push({ x: -1, y: -1 });
         while (true) {
             var v = -1;
             for (var u = 0; u < V; u++) {
-                if (!used[u] && (v == -1 || d[u] < d[v]))
+                if (!used[u] && (v === -1 || d[u] < d[v]))
                     v = u;
             }
-            if (v == -1)
+            if (v === -1)
                 break;
             used[v] = true;
             for (var u = 0; u < V; u++) {
-                d[u] = Math.min(d[u], d[v] + cost[v][u]);
-                prevPos[u] = { x: v % FIELD_SIZE, y: v / FIELD_SIZE };
+                if (d[u] > d[v] + cost[v][u]) {
+                    d[u] = Math.min(d[u], d[v] + cost[v][u]);
+                    prevPos[u] = { x: v % FIELD_SIZE, y: Math.floor(v / FIELD_SIZE) };
+                }
             }
         }
         // destから現在地curPosへの最短経路を求める
-        var destToCurPosPath = new Array();
+        var destToCurPosPath = [];
         var t = dest;
-        for (; t.x !== -1 && t.y !== -1; prevPos[FIELD_SIZE * t.y + t.x]) {
+        for (; !(t.x === -1 && t.y === -1); t = prevPos[FIELD_SIZE * t.y + t.x]) {
             destToCurPosPath.push(t);
         }
-        this.pos = destToCurPosPath[destToCurPosPath.length - 1];
+        this.pos = destToCurPosPath[destToCurPosPath.length - 2];
     };
     Human.humanNum = 1;
     return Human;

@@ -1,13 +1,26 @@
+let intervalId;
 // ページが読み込まれたときの処理
 document.addEventListener("DOMContentLoaded", (e) => {
-    setInterval(() => {
+    intervalId = setInterval(() => {
         // 1秒ごとに盤面を更新する
         gameState.humans.forEach((human) => human.spendTime());
+        // 時間を10分進める
+        gameState.time.h = (gameState.time.h + 1) % 24;
         drawField();
+        drawTime();
     }, 1000);
 
     createField();
+    drawField();
+    drawTime();
 });
+
+/**
+ * デバッグ用。インターバルを止める
+ */
+function stopInterval(): void {
+    clearInterval(intervalId);
+}
 
 /* 盤面のサイズ */
 const FIELD_SIZE = 8;
@@ -140,6 +153,17 @@ function drawField(): void {
             squareEl.appendChild(balloonEl);
         }
     });
+}
+
+/**
+ * 表示されている時刻を更新する
+ */
+function drawTime(): void {
+    const timeEl = document.getElementById("timeLabel");
+    if (!timeEl) {
+        throw new Error(`timeLabel was not found.`);
+    }
+    timeEl.textContent = `現在の時刻 ${gameState.time.h} : ${gameState.time.m}`;
 }
 
 /**
