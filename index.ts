@@ -2,7 +2,8 @@
 document.addEventListener("DOMContentLoaded", (e) => {
     setInterval(() => {
         // 1秒ごとに盤面を更新する
-        drawField()
+        gameState.humans.forEach((human) => human.spendTime());
+        drawField();
     }, 1000);
 
     createField();
@@ -28,6 +29,7 @@ function handleClickSquare(x: number, y: number): void {
         case 'addHuman':
             // 指定の場所に人を追加する
             const newHuman = new Human();
+            newHuman.homePos = {x, y};
             newHuman.pos = {x, y};
             addHuman(newHuman);
             // 盤面を更新する
@@ -144,7 +146,6 @@ function drawField(): void {
  * 人を追加
  */
 function addHuman(newHuman: Human) {
-    const {x, y} = newHuman.pos;
     gameState.humans.push(newHuman);
 }
 

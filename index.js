@@ -24,6 +24,7 @@ function handleClickSquare(x, y) {
         case 'addHuman':
             // 指定の場所に人を追加する
             var newHuman = new Human();
+            newHuman.homePos = { x: x, y: y };
             newHuman.pos = { x: x, y: y };
             addHuman(newHuman);
             // 盤面を更新する
@@ -135,7 +136,6 @@ function drawField() {
  * 人を追加
  */
 function addHuman(newHuman) {
-    var _a = newHuman.pos, x = _a.x, y = _a.y;
     gameState.humans.push(newHuman);
 }
 /**
