@@ -1,4 +1,4 @@
-let intervalId;
+let intervalId: number;
 // ページが読み込まれたときの処理
 document.addEventListener("DOMContentLoaded", (e) => {
     intervalId = setInterval(() => {
@@ -29,6 +29,7 @@ let gameState: GameState = {
     time: { d: 1, h: 14, m: 30 },
     mode: "neutral",
     humans: [],
+    assets: [],
 }
 
 /**
@@ -42,8 +43,8 @@ function handleClickSquare(x: number, y: number): void {
         case 'addHuman':
             // 指定の場所に人を追加する
             const newHuman = new Human();
-            newHuman.homePos = {x, y};
-            newHuman.pos = {x, y};
+            newHuman.homePos = { x, y };
+            newHuman.pos = { x, y };
             addHuman(newHuman);
             // 盤面を更新する
             drawField();
@@ -79,7 +80,7 @@ function createBalloon(human: Human): HTMLDivElement {
     balloonEl.className = "balloon2";
     const messageEl = document.createElement("p");
     messageEl.innerText =
-    `名前：${human.name}
+        `名前：${human.name}
     HP：${human.hp}
     役職：${human.job}
     性格：${human.character}`;
@@ -139,8 +140,9 @@ function drawField(): void {
     // 盤面をリセットする
     resetField();
 
+    // 人を描画
     gameState.humans.forEach((human) => {
-        const {x, y} = human.pos;
+        const { x, y } = human.pos;
         const squareEl = document.getElementById("square-" + (FIELD_SIZE * y + x));
         if (!squareEl) {
             throw new Error(`square-${FIELD_SIZE * y + x} was not found.`);
@@ -151,6 +153,44 @@ function drawField(): void {
         if (human.isSelected) {
             const balloonEl = createBalloon(human);
             squareEl.appendChild(balloonEl);
+        }
+    });
+
+    // アセットを描画
+    gameState.assets.forEach((asset) => {
+        const { x, y } = asset.pos;
+        const squareEl = document.getElementById("square-" + (FIELD_SIZE * y + x));
+        if (!squareEl) {
+            throw new Error(`square-${FIELD_SIZE * y + x} was not found.`);
+        }
+
+        if (asset instanceof House) {
+            // クラスをリセットする
+            squareEl.classList.remove(asset.className);
+            // 適切な画像表示のため、状況に応じたクラスを付与する
+            // TODO：時間や状況に応じたclassNameを再検討する
+            // TODO：寝ているときはnight-houseにする
+            if (asset.owner.pos.x === x && asset.owner.pos.y === y) {
+                // 所有者が家にいる場合
+                if (isNight()) {
+                    asset.className = 'evening-house';
+                } else {
+                    asset.className = 'normal-house';
+                }
+
+                // 画像を表示するためにマスの文字列を消す
+                squareEl.textContent = "";
+            } else {
+                // 所有者が家にいない場合
+                if (isNight()) {
+                    asset.className = 'night-house';
+                } else {
+                    asset.className = 'normal-house';
+                }
+            }
+            squareEl.classList.add(asset.className);
+            const imgEl = document.createElement("img");
+            squareEl.appendChild(imgEl);
         }
     });
 }
@@ -167,10 +207,16 @@ function drawTime(): void {
 }
 
 /**
- * 人を追加
+ * gameStateに人と家を追加
  */
 function addHuman(newHuman: Human) {
+    const { x, y } = newHuman.pos;
+    // 人を追加
     gameState.humans.push(newHuman);
+    // 家を追加
+    gameState.assets.push(
+        new House({ x, y }, newHuman)
+    );
 }
 
 /**
@@ -180,7 +226,7 @@ function addHuman(newHuman: Human) {
 function createRandomPos(): Position {
     const x = Math.floor(Math.random() * FIELD_SIZE);
     const y = Math.floor(Math.random() * FIELD_SIZE);
-    return {x, y};
+    return { x, y };
 }
 
 /**
@@ -196,6 +242,14 @@ function getHumansFromPos(pos: Position): Human[] {
         }
     });
     return retHumans;
+}
+
+function isNight(): boolean {
+    if (gameState.time.h >= 18 || gameState.time.h <= 6) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**

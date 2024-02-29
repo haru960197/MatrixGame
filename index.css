@@ -19,6 +19,30 @@
     background: rgb(204, 238, 91);
 }
 
+.square.normal-house img {
+    content: url(./img/house/normal_house.png);
+    display: inline-block;
+    height: 100%;
+}
+
+.square.evening-house img {
+    content: url(./img/house/evening_house.png);
+    display: inline-block;
+    height: 100%;
+}
+
+.square.night-house img {
+    content: url(./img/house/night_house.png);
+    display: inline-block;
+    height: 100%;
+}
+
+.square.sleeping-house img {
+    content: url(./img/house/sleeping_house.png);
+    display: inline-block;
+    height: 100%;
+}
+
 .board-row:after {
     clear: both;
     /* 表が正方形になるように、変なところで改行されないように。 */

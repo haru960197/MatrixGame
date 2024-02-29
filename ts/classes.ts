@@ -13,6 +13,7 @@ type Character = {
     wisdom: number;
 }
 
+// TODO：Taskを抽象クラスにして、個別タスククラスを作成する
 class Task {
     what: 'sleep' | 'walking';
     where: Position;
@@ -225,16 +226,42 @@ class Human {
         character: Character = { wisdom: 0.5 },
         isSelected: boolean = false,
     ) {
+        if (homePos.x < 0 || FIELD_SIZE <= homePos.x
+            || homePos.y < 0 || FIELD_SIZE <= homePos.y) {
+            throw new Error('Position must be 0 <= x < FIELD_SIZE');
+        }
         Human.humanNum++;
         this.name = name;
         this.homePos = homePos;
-        this.pos = homePos;
+        this._pos = homePos;
         this.hp = hp;
         this.job = job;
         this.color = color;
         this.character = character;
         this.isSelected = isSelected;
         this.task = null;
+    }
+}
+
+abstract class Asset {
+    pos: Position;
+    owner: Human;
+
+    constructor(pos: Position, owner: Human) {
+        if (pos.x < 0 || pos.x >= FIELD_SIZE || pos.y < 0 || pos.y >= FIELD_SIZE) {
+            throw new Error(`pos.x, pox.y must be in 0 <= a < FIELD_SIZE`);
+        }
+        this.pos = pos;
+        this.owner = owner;
+    }
+}
+
+class House extends Asset {
+    className: "normal-house" | "evening-house" | "night-house" | "sleeping-house";
+
+    constructor(pos: Position, owner: Human) {
+        super(pos, owner);
+        this.className = "normal-house";
     }
 }
 
@@ -250,4 +277,5 @@ type GameState = {
     time: Time;
     mode: InterfaceMode;
     humans: Human[];
+    assets: Asset[];
 }

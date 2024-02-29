@@ -26,6 +26,7 @@ let gameState = {
     time: { d: 1, h: 14, m: 30 },
     mode: "neutral",
     humans: [],
+    assets: [],
 };
 /**
  * Squareがクリックされたときに呼ばれ、現在のモードに従って処理を行う
@@ -128,6 +129,7 @@ function resetField() {
 function drawField() {
     // 盤面をリセットする
     resetField();
+    // 人を描画
     gameState.humans.forEach((human) => {
         const { x, y } = human.pos;
         const squareEl = document.getElementById("square-" + (FIELD_SIZE * y + x));
@@ -142,6 +144,43 @@ function drawField() {
             squareEl.appendChild(balloonEl);
         }
     });
+    // アセットを描画
+    gameState.assets.forEach((asset) => {
+        const { x, y } = asset.pos;
+        const squareEl = document.getElementById("square-" + (FIELD_SIZE * y + x));
+        if (!squareEl) {
+            throw new Error(`square-${FIELD_SIZE * y + x} was not found.`);
+        }
+        if (asset instanceof House) {
+            // クラスをリセットする
+            squareEl.classList.remove(asset.className);
+            // 適切な画像表示のため、状況に応じたクラスを付与する
+            if (asset.owner.pos.x === x && asset.owner.pos.y === y) {
+                // 所有者が家にいる場合
+                if (isNight()) {
+                    asset.className = 'evening-house';
+                }
+                else {
+                    asset.className = 'normal-house';
+                }
+                // TODO：寝ているときはnight-houseにする
+                // 画像を表示するためにマスの文字列を消す
+                squareEl.textContent = "";
+            }
+            else {
+                // 所有者が家にいない場合
+                if (isNight()) {
+                    asset.className = 'night-house';
+                }
+                else {
+                    asset.className = 'normal-house';
+                }
+            }
+            squareEl.classList.add(asset.className);
+            const imgEl = document.createElement("img");
+            squareEl.appendChild(imgEl);
+        }
+    });
 }
 /**
  * 表示されている時刻を更新する
@@ -154,10 +193,14 @@ function drawTime() {
     timeEl.textContent = `現在の時刻 ${gameState.time.h} : ${gameState.time.m}`;
 }
 /**
- * 人を追加
+ * gameStateに人と家を追加
  */
 function addHuman(newHuman) {
+    const { x, y } = newHuman.pos;
+    // 人を追加
     gameState.humans.push(newHuman);
+    // 家を追加
+    gameState.assets.push(new House({ x, y }, newHuman));
 }
 /**
  * ランダムな位置を生成し、返す
@@ -181,6 +224,14 @@ function getHumansFromPos(pos) {
         }
     });
     return retHumans;
+}
+function isNight() {
+    if (gameState.time.h >= 18 || gameState.time.h <= 6) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 /**
  * 位置の選択モードに遷移し、Square上でホバーすると色が変わるようになる

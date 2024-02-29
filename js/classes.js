@@ -204,4 +204,19 @@ class Human {
     }
 }
 Human.humanNum = 1;
+class Asset {
+    constructor(pos, owner) {
+        if (pos.x < 0 || pos.x >= FIELD_SIZE || pos.y < 0 || pos.y >= FIELD_SIZE) {
+            throw new Error(`pos.x, pox.y must be in 0 <= a < FIELD_SIZE`);
+        }
+        this.pos = pos;
+        this.owner = owner;
+    }
+}
+class House extends Asset {
+    constructor(pos, owner) {
+        super(pos, owner);
+        this.className = "normal-house";
+    }
+}
 //# sourceMappingURL=classes.js.map
