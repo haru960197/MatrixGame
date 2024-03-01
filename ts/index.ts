@@ -1,29 +1,20 @@
 let intervalId: number;
+let isLooping: boolean;
+
+/* 盤面のサイズ */
+const FIELD_SIZE = 8;
+
 // ページが読み込まれたときの処理
 document.addEventListener("DOMContentLoaded", (e) => {
-    intervalId = setInterval(() => {
-        // 1秒ごとに盤面を更新する
-        gameState.humans.forEach((human) => human.spendTime());
-        // 時間を10分進める
-        gameState.time.h = (gameState.time.h + 1) % 24;
-        drawField();
-        drawTime();
-    }, 1000);
+    // 1秒ごとにintervalFuncを実行するように設定
+    intervalId = setInterval(intervalFunc, 1000);
+    isLooping = true;
 
+    // 描画
     createField();
     drawField();
     drawTime();
 });
-
-/**
- * デバッグ用。インターバルを止める
- */
-function stopInterval(): void {
-    clearInterval(intervalId);
-}
-
-/* 盤面のサイズ */
-const FIELD_SIZE = 8;
 
 let gameState: GameState = {
     time: { d: 1, h: 14, m: 30 },
@@ -33,61 +24,29 @@ let gameState: GameState = {
 }
 
 /**
- * Squareがクリックされたときに呼ばれ、現在のモードに従って処理を行う
+ * 1単位時間ごとに呼ばれる関数
  */
-function handleClickSquare(x: number, y: number): void {
-    switch (gameState.mode) {
-        case 'neutral':
-            console.log(FIELD_SIZE * y + x);
-            break;
-        case 'addHuman':
-            // 指定の場所に人を追加する
-            const newHuman = new Human();
-            newHuman.homePos = { x, y };
-            newHuman.pos = { x, y };
-            addHuman(newHuman);
-            // 盤面を更新する
-            drawField();
-            // ヒト追加モードを抜ける
-            exitAddHumanMode();
-            break;
-        case 'selectHuman':
-            const humans = getHumansFromPos({ x, y });
-            // 指定の場所に人がいなければ何もしない
-            if (humans.length == 0) {
-                return;
-            }
-            // 指定の場所の人の選択状態を反転させる
-            // （複数人の場合はリストの先頭）
-            humans[0].isSelected = !humans[0].isSelected;
-            // 盤面を更新する
-            drawField();
-            // 選択モードを抜ける
-            exitSelectHumanMode();
-            break;
-    }
+function intervalFunc(): void {
+    // 1単位時間ごとに盤面を更新する
+    gameState.humans.forEach((human) => human.spendTime());
+    // 時間を10分進める
+    gameState.time.h = (gameState.time.h + 1) % 24;
+    // 盤面などを更新
+    drawField();
+    drawTime();
 }
 
 /**
- * 人の情報を表示する吹き出し要素を返す
- * @param human 情報を表示する対象
- * @returns 吹き出しの<div>要素
+ * インターバルのオン/オフを切り替える
  */
-function createBalloon(human: Human): HTMLDivElement {
-    const divEl = document.createElement("div");
-    divEl.className = "above-square";
-    const balloonEl = document.createElement("div");
-    balloonEl.className = "balloon2";
-    const messageEl = document.createElement("p");
-    messageEl.innerText =
-        `名前：${human.name}
-    HP：${human.hp}
-    役職：${human.job}
-    性格：${human.character}`;
-    balloonEl.appendChild(messageEl);
-    divEl.appendChild(balloonEl);
-
-    return divEl;
+function switchInterval(): void {
+    if (isLooping) {
+        clearInterval(intervalId);
+        isLooping = false;
+    } else {
+        intervalId = setInterval(intervalFunc, 1000);
+        isLooping = true;
+    }
 }
 
 /**
@@ -117,185 +76,26 @@ function createField(): void {
     }
 }
 
-/**
- * 盤面をリセットする（すべてのマスを空文字列にする）
- */
-function resetField(): void {
-    for (let i = 0; i < FIELD_SIZE; i++) {
-        for (let j = 0; j < FIELD_SIZE; j++) {
-            const squareEl = document.getElementById("square-" + (FIELD_SIZE * i + j));
-            if (!squareEl)
-                throw new Error(`square-${FIELD_SIZE * i + j} was not found.`);
-            // 各マスの文字列をから文字列にリセット
-            squareEl.textContent = "";
-        }
-    }
+// ================= type ================
+
+type GameState = {
+    time: Time;
+    mode: InterfaceMode;
+    humans: Human[];
+    assets: Asset[];
 }
 
-/**
- * gameStateに従って盤面を更新する
- * 選択中の人の上には吹き出しを表示する
- */
-function drawField(): void {
-    // 盤面をリセットする
-    resetField();
-
-    // 人を描画
-    gameState.humans.forEach((human) => {
-        const { x, y } = human.pos;
-        const squareEl = document.getElementById("square-" + (FIELD_SIZE * y + x));
-        if (!squareEl) {
-            throw new Error(`square-${FIELD_SIZE * y + x} was not found.`);
-        }
-        // マスの文字列を更新
-        squareEl.textContent = "○";
-        // 人が選択中ならマスの上に吹き出しを表示する
-        if (human.isSelected) {
-            const balloonEl = createBalloon(human);
-            squareEl.appendChild(balloonEl);
-        }
-    });
-
-    // アセットを描画
-    gameState.assets.forEach((asset) => {
-        const { x, y } = asset.pos;
-        const squareEl = document.getElementById("square-" + (FIELD_SIZE * y + x));
-        if (!squareEl) {
-            throw new Error(`square-${FIELD_SIZE * y + x} was not found.`);
-        }
-
-        if (asset instanceof House) {
-            // クラスをリセットする
-            squareEl.classList.remove(asset.className);
-            // 適切な画像表示のため、状況に応じたクラスを付与する
-            // TODO：時間や状況に応じたclassNameを再検討する
-            // TODO：寝ているときはnight-houseにする
-            if (asset.owner.pos.x === x && asset.owner.pos.y === y) {
-                // 所有者が家にいる場合
-                if (isNight()) {
-                    asset.className = 'evening-house';
-                } else {
-                    asset.className = 'normal-house';
-                }
-
-                // 画像を表示するためにマスの文字列を消す
-                squareEl.textContent = "";
-            } else {
-                // 所有者が家にいない場合
-                if (isNight()) {
-                    asset.className = 'night-house';
-                } else {
-                    asset.className = 'normal-house';
-                }
-            }
-            squareEl.classList.add(asset.className);
-            const imgEl = document.createElement("img");
-            squareEl.appendChild(imgEl);
-        }
-    });
+type Time = {
+    d: number;
+    h: number;
+    m: number;
 }
 
-/**
- * 表示されている時刻を更新する
- */
-function drawTime(): void {
-    const timeEl = document.getElementById("timeLabel");
-    if (!timeEl) {
-        throw new Error(`timeLabel was not found.`);
-    }
-    timeEl.textContent = `現在の時刻 ${gameState.time.h} : ${gameState.time.m}`;
+interface HTMLEvent<T extends EventTarget> extends Event {
+    target: T;
 }
 
-/**
- * gameStateに人と家を追加
- */
-function addHuman(newHuman: Human) {
-    const { x, y } = newHuman.pos;
-    // 人を追加
-    gameState.humans.push(newHuman);
-    // 家を追加
-    gameState.assets.push(
-        new House({ x, y }, newHuman)
-    );
-}
-
-/**
- * ランダムな位置を生成し、返す
- * @returns [x, y]
- */
-function createRandomPos(): Position {
-    const x = Math.floor(Math.random() * FIELD_SIZE);
-    const y = Math.floor(Math.random() * FIELD_SIZE);
-    return { x, y };
-}
-
-/**
- * ある座標にいる人の検索し、配列にして返す
- * @param pos 座標
- * @returns その座標にいる人の配列
- */
-function getHumansFromPos(pos: Position): Human[] {
-    const retHumans: Human[] = [];
-    gameState.humans.forEach((human) => {
-        if (human.pos.x == pos.x && human.pos.y == pos.y) {
-            retHumans.push(human);
-        }
-    });
-    return retHumans;
-}
-
-function isNight(): boolean {
-    if (gameState.time.h >= 18 || gameState.time.h <= 6) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * 位置の選択モードに遷移し、Square上でホバーすると色が変わるようになる
- */
-function enterAddHumanMode(): void {
-    for (let i = 0; i < FIELD_SIZE; i++) {
-        for (let j = 0; j < FIELD_SIZE; j++) {
-            const squareEl = document.getElementById("square-" + (FIELD_SIZE * i + j));
-            if (!squareEl)
-                throw new Error(`square-${FIELD_SIZE * i + j} was not found.`);
-            // ホバー時に色が変わるようにクラスを追加
-            squareEl.classList.add('human-add-mode')
-            // 選択モードに遷移する
-            gameState.mode = 'addHuman';
-        }
-    }
-}
-
-/**
- * ニュートラルモードに遷移し、Square上でホバーしても色が変わらないようにする
- */
-function exitAddHumanMode(): void {
-    for (let i = 0; i < FIELD_SIZE; i++) {
-        for (let j = 0; j < FIELD_SIZE; j++) {
-            const squareEl = document.getElementById("square-" + (FIELD_SIZE * i + j));
-            if (!squareEl)
-                throw new Error(`square-${FIELD_SIZE * i + j} was not found.`);
-            /* ホバー時に色が変わるクラスを除去 */
-            squareEl.classList.remove('human-add-mode')
-            /* ニュートラルモードに遷移する */
-            gameState.mode = 'neutral';
-        }
-    }
-}
-
-/**
- * 吹き出しを表示する人を選択するモードに遷移する
- */
-function enterSelectHumanMode(): void {
-    gameState.mode = 'selectHuman';
-}
-
-/**
- * ニュートラルモードに遷移する
- */
-function exitSelectHumanMode(): void {
-    gameState.mode = 'neutral';
+type Position = {
+    x: number,
+    y: number,
 }
