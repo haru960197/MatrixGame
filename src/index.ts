@@ -1,8 +1,10 @@
+import { drawField, drawTime } from "./function/draw";
+import { handleAddHumanClick, handleClickSquare } from "./function/handleAction";
+import { enterSelectHumanMode } from "./function/handleMode";
+import { FIELD_SIZE, gameState } from "./game";
+
 let intervalId: number;
 let isLooping: boolean;
-
-/* 盤面のサイズ */
-const FIELD_SIZE = 8;
 
 // ページが読み込まれたときの処理
 document.addEventListener("DOMContentLoaded", (e) => {
@@ -10,18 +12,16 @@ document.addEventListener("DOMContentLoaded", (e) => {
     intervalId = setInterval(intervalFunc, 1000);
     isLooping = true;
 
+    // イベントハンドラーを登録
+    document.getElementById("selectHumanButton")?.addEventListener("click", enterSelectHumanMode);
+    document.getElementById("switchIntervalButton")?.addEventListener("click", switchInterval);
+    document.getElementById("addHumanButton")?.addEventListener("click", handleAddHumanClick);
+
     // 描画
     createField();
     drawField();
     drawTime();
 });
-
-let gameState: GameState = {
-    time: { d: 1, h: 14, m: 30 },
-    mode: "neutral",
-    humans: [],
-    assets: [],
-}
 
 /**
  * 1単位時間ごとに呼ばれる関数
@@ -39,7 +39,7 @@ function intervalFunc(): void {
 /**
  * インターバルのオン/オフを切り替える
  */
-function switchInterval(): void {
+export function switchInterval(): void {
     if (isLooping) {
         clearInterval(intervalId);
         isLooping = false;
@@ -74,28 +74,4 @@ function createField(): void {
         // 行の要素を子要素にする
         fieldEl.appendChild(lineEl);
     }
-}
-
-// ================= type ================
-
-type GameState = {
-    time: Time;
-    mode: InterfaceMode;
-    humans: Human[];
-    assets: Asset[];
-}
-
-type Time = {
-    d: number;
-    h: number;
-    m: number;
-}
-
-interface HTMLEvent<T extends EventTarget> extends Event {
-    target: T;
-}
-
-type Position = {
-    x: number,
-    y: number,
 }

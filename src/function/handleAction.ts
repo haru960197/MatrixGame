@@ -1,14 +1,30 @@
+import { gameState, HTMLEvent, FIELD_SIZE } from "../game";
+import { Human, Job } from "../class/Human/Human";
+import { Farmer } from "../class/Human/Farmer";
+import { Merchant } from "../class/Human/Merchant";
+import { House } from "../class/Asset/House";
+import { drawField } from "./draw";
+import { exitAddHumanMode, enterAddHumanMode, exitSelectHumanMode } from "./handleMode";
+import { getHumansFromPos } from "./utils";
+
 /**
  * Squareがクリックされたときに呼ばれ、現在のモードに従って処理を行う
  */
-function handleClickSquare(x: number, y: number): void {
+export function handleClickSquare(x: number, y: number): void {
     switch (gameState.mode) {
         case 'neutral':
             console.log(FIELD_SIZE * y + x);
             break;
         case 'addHuman':
             // 指定の場所に人を追加する
-            const newHuman = new Human();
+            let newHuman: Human;
+            if (gameState.addHumanType === "farmer") {
+                newHuman = new Farmer();
+            } else if (gameState.addHumanType === "merchant") {
+                newHuman = new Merchant();
+            } else {
+                newHuman = new Farmer();
+            }
             newHuman.homePos = { x, y };
             newHuman.pos = { x, y };
             addHuman(newHuman);
@@ -45,4 +61,17 @@ function addHuman(newHuman: Human) {
     gameState.assets.push(
         new House({ x, y }, newHuman)
     );
+}
+
+export function handleAddHumanClick(): void {
+    console.log("hoge");
+    const radioInputs = document.getElementsByName("typeForm") as NodeListOf<HTMLInputElement>;
+    radioInputs.forEach((radio: HTMLInputElement) => {
+        if (radio.checked) {
+            gameState.addHumanType = radio.value as Job;
+        }
+    });
+    console.log(gameState.addHumanType);
+
+    enterAddHumanMode();
 }

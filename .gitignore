@@ -1,2 +1,3 @@
 img/dot
 *.pptx
+/node_modules/*

@@ -1,8 +1,13 @@
+import { gameState, FIELD_SIZE } from "../game";
+import { House } from "../class/Asset/House";
+import { Human } from "../class/Human/Human";
+import { isNight } from "./utils";
+
 /**
  * gameStateに従って盤面を更新する
  * 選択中の人の上には吹き出しを表示する
  */
-function drawField(): void {
+export function drawField(): void {
     // 盤面をリセットする
     resetField();
 
@@ -79,7 +84,7 @@ function resetField(): void {
 /**
  * 表示されている時刻を更新する
  */
-function drawTime(): void {
+export function drawTime(): void {
     const timeEl = document.getElementById("timeLabel");
     if (!timeEl) {
         throw new Error(`timeLabel was not found.`);
@@ -92,7 +97,7 @@ function drawTime(): void {
  * @param human 情報を表示する対象
  * @returns 吹き出しの<div>要素
  */
-function createBalloon(human: Human): HTMLDivElement {
+export function createBalloon(human: Human): HTMLDivElement {
     const divEl = document.createElement("div");
     divEl.className = "above-square";
     const balloonEl = document.createElement("div");

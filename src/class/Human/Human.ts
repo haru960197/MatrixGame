@@ -1,4 +1,8 @@
-class Human {
+import { Position } from "../../game";
+import { Task } from "../Task/Task";
+import { FIELD_SIZE } from "../../game";
+
+export abstract class Human {
     static humanNum = 1;
     name: string;
     private _pos: Position;
@@ -24,42 +28,14 @@ class Human {
 
     /**
      * 1単位時間過ごす
+     * MODIFIES : this.hp, this.task
      */
-    spendTime(): void {
-        // タスクを完了している場合、次のタスクを決める
-        if (!this.task) {
-            this.determineTask();
-        }
-
-        // タスクに従って行動する
-        switch (this.task?.what) {
-            case 'sleep':
-                Task.handleSleep(this);
-                break;
-            case 'walking':
-                Task.handleWalking(this);
-                break;
-        }
-
-        // TODO : hpを更新する
-    }
+    abstract spendTime(): void;
 
     /**
      * ランダムにタスクを決める
      */
-    determineTask(): void {
-        // TODO タスクの数を増やす
-        // TODO タスクを現在のパラメータに従って決めるように変更
-        if (16 < gameState.time.h) {
-            // 寝る
-            console.log("眠ります");
-            this.task = { what: 'sleep', where: this.homePos }
-        } else {
-            // 散歩する
-            console.log("(5, 5)へ向かいます");
-            this.task = { what: 'walking', where: { x: 5, y: 5 } }
-        }
-    }
+    abstract determineTask(): void;
 
     /**
      * 目的地に向かって1マス進む
@@ -127,9 +103,9 @@ class Human {
     }
 }
 
-type Job = 'farmer' | 'merchant';
+export type Job = 'farmer' | 'merchant';
 
-type Character = {
+export type Character = {
     wisdom: number;
 }
 

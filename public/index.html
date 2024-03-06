@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./index.css">
+    <title>Matrix</title>
+</head>
+
+<body>
+    <p>Welcome to Matrix. Neo</p>
+
+    <!-- フィールド用 -->
+    <div id="field"></div>
+
+    <button id="selectHumanButton">Select Human</button>
+    <button id="switchIntervalButton">Switch Interval</button>
+
+    <form>
+        <fieldset>
+            <legend>タイプを選んで人を追加</legend>
+            <div>
+                <input type="radio" name="typeForm" id="farmer" value="farmer" checked/>
+                <label htmlFor="farmer">farmer</label>
+                <input type="radio" name="typeForm" id="merchant" value="merchant"/>
+                <label htmlFor="merchant">merchant</label>
+            </div>
+            <button id="addHumanButton">Add Human</button>
+        </fieldset>
+    </form>
+
+    <p id="timeLabel"></p>
+
+    <script src="main.js"></script>
+</body>
+
+</html>

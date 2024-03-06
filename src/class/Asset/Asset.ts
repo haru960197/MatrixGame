@@ -1,4 +1,7 @@
-abstract class Asset {
+import { Position, FIELD_SIZE } from "../../game";
+import { Human } from "../Human/Human";
+
+export abstract class Asset {
     pos: Position;
     owner: Human;
 

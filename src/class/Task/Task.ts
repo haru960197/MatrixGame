@@ -1,5 +1,8 @@
+import { Human } from "../Human/Human";
+import { gameState, Position } from "../../game";
+
 // TODO：Taskを抽象クラスにして、個別タスククラスを作成する
-class Task {
+export class Task {
     what: 'sleep' | 'walking';
     where: Position;
 
