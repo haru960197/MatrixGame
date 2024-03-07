@@ -1,9 +1,8 @@
 import { Human } from "../Human/Human";
-import { gameState, Position } from "../../game";
+import { gameState, Position, FIELD_SIZE } from "../../game";
 
-// TODO：Taskを抽象クラスにして、個別タスククラスを作成する
 export class Task {
-    what: 'sleep' | 'walking';
+    what: TaskType;
     where: Position;
 
     static handleSleep(human: Human): void {
@@ -34,4 +33,15 @@ export class Task {
             human.headToDest(human.task.where);
         }
     }
+
+    constructor(what: TaskType, where: Position) {
+        if (where.x < 0 || FIELD_SIZE <= where.x
+            || where.y < 0 || FIELD_SIZE <= where.y) {
+            throw new Error('Position must be 0 <= x < FIELD_SIZE');
+        }
+        this.what = what;
+        this.where = where;
+    }
 }
+
+type TaskType = 'sleep' | 'walking';
