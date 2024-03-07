@@ -1,11 +1,18 @@
+import { Job } from "../class/Human/Human";
 import { FIELD_SIZE, gameState } from "../game";
 
-export type InterfaceMode = "neutral" | "addHuman" | "selectHuman";
-
+export type InterfaceMode = {
+    id: 'neutral';
+  } | {
+    id: 'addHuman';
+    job: Job;
+  } | {
+    id: 'selectHuman';
+  };
 /**
  * 位置の選択モードに遷移し、Square上でホバーすると色が変わるようになる
  */
-export function enterAddHumanMode(): void {
+export function enterAddHumanMode(job: Job): void {
     for (let i = 0; i < FIELD_SIZE; i++) {
         for (let j = 0; j < FIELD_SIZE; j++) {
             const squareEl = document.getElementById("square-" + (FIELD_SIZE * i + j));
@@ -14,7 +21,7 @@ export function enterAddHumanMode(): void {
             // ホバー時に色が変わるようにクラスを追加
             squareEl.classList.add('human-add-mode')
             // 選択モードに遷移する
-            gameState.mode = 'addHuman';
+            gameState.mode = { id: 'addHuman', job };
         }
     }
 }
@@ -31,7 +38,7 @@ export function exitAddHumanMode(): void {
             /* ホバー時に色が変わるクラスを除去 */
             squareEl.classList.remove('human-add-mode')
             /* ニュートラルモードに遷移する */
-            gameState.mode = 'neutral';
+            gameState.mode = { id: 'neutral' };
         }
     }
 }
@@ -40,12 +47,12 @@ export function exitAddHumanMode(): void {
  * 吹き出しを表示する人を選択するモードに遷移する
  */
 export function enterSelectHumanMode(): void {
-    gameState.mode = 'selectHuman';
+    gameState.mode = { id: 'selectHuman' };
 }
 
 /**
  * ニュートラルモードに遷移する
  */
 export function exitSelectHumanMode(): void {
-    gameState.mode = 'neutral';
+    gameState.mode = { id: 'neutral' };
 }

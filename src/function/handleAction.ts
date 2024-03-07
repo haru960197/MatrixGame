@@ -11,16 +11,16 @@ import { getHumansFromPos } from "./utils";
  * Squareがクリックされたときに呼ばれ、現在のモードに従って処理を行う
  */
 export function handleClickSquare(x: number, y: number): void {
-    switch (gameState.mode) {
+    switch (gameState.mode.id) {
         case 'neutral':
             console.log(FIELD_SIZE * y + x);
             break;
         case 'addHuman':
             // 指定の場所に人を追加する
             let newHuman: Human;
-            if (gameState.addHumanType === "farmer") {
+            if (gameState.mode.job === "farmer") {
                 newHuman = new Farmer();
-            } else if (gameState.addHumanType === "merchant") {
+            } else if (gameState.mode.job === "merchant") {
                 newHuman = new Merchant();
             } else {
                 newHuman = new Farmer();
@@ -66,12 +66,17 @@ function addHuman(newHuman: Human) {
 export function handleAddHumanClick(): void {
     console.log("hoge");
     const radioInputs = document.getElementsByName("typeForm") as NodeListOf<HTMLInputElement>;
+    let job: Job | null = null;
     radioInputs.forEach((radio: HTMLInputElement) => {
         if (radio.checked) {
-            gameState.addHumanType = radio.value as Job;
+            job = radio.value as Job;
         }
     });
-    console.log(gameState.addHumanType);
 
-    enterAddHumanMode();
+    if (!job) {
+        throw new Error("job is not selected. Can't enter add-human mode.");
+    }
+    console.log(job);
+
+    enterAddHumanMode(job);
 }

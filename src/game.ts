@@ -7,8 +7,7 @@ export const FIELD_SIZE = 8;
 
 export let gameState: GameState = {
     time: { d: 1, h: 14, m: 30 },
-    mode: "neutral",
-    addHumanType: "farmer",
+    mode: { id: "neutral" },
     humans: [],
     assets: [],
 }
@@ -18,7 +17,6 @@ export let gameState: GameState = {
 export type GameState = {
     time: Time;
     mode: InterfaceMode;
-    addHumanType: Job;
     humans: Human[];
     assets: Asset[];
 }
