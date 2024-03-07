@@ -50,7 +50,8 @@ export function drawField(): void {
                     asset.className = 'normal-house';
                 }
                 // 画像を表示するためにマスの文字列を消す
-                squareEl.textContent = "";
+                const textEl = squareEl.childNodes[0];
+                textEl.textContent = "";
             } else {
                 // 所有者が家にいない場合
                 if (isNight()) {
@@ -75,7 +76,7 @@ function resetField(): void {
             const squareEl = document.getElementById("square-" + (FIELD_SIZE * i + j));
             if (!squareEl)
                 throw new Error(`square-${FIELD_SIZE * i + j} was not found.`);
-            // 各マスの文字列をから文字列にリセット
+            // 各マスの文字列を空文字列にリセット
             squareEl.textContent = "";
         }
     }

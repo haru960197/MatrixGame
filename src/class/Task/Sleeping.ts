@@ -30,6 +30,9 @@ export class Sleeping extends Task {
                         // ランダムな値が閾値を超えたら寝る
                         this.isSleeping = true;
                     }
+                } else {
+                    // 寝ているのでhpを回復
+                    human.changeHp(+1);
                 }
             } else {
                 // 出先なので、家に帰る

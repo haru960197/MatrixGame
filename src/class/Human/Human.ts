@@ -1,13 +1,16 @@
-import { Position } from "../../game";
+import { Position, gameState } from "../../game";
 import { Task } from "../Task/Task";
 import { FIELD_SIZE } from "../../game";
+import { Sleeping } from "../Task/Sleeping";
+import { Walking } from "../Task/Walking";
 
 export abstract class Human {
     static humanNum = 1;
+    private timeCounter = 0;
     name: string;
     private _pos: Position;
     homePos: Position;
-    hp: number;
+    private _hp: number;
     job: Job;
     color: string;
     character: Character;
@@ -26,11 +29,44 @@ export abstract class Human {
         this._pos = newPos;
     }
 
+    get hp(): number { return this._hp; }
+    
+    /**
+     * hpを更新する。0以下になった場合gameState.humansから自身を削除
+     * @param deltaHp hpの変化量
+     */
+    changeHp(deltaHp: number) {
+        this._hp += deltaHp;
+        if (this.hp <= 0) {
+            // 死亡したので、世界から自分を消去
+            // TODO : もし死亡した人も管理するならここを編集
+            gameState.humans = gameState.humans.filter((human) => human !== this);
+        }
+    }
+
     /**
      * 1単位時間過ごす
-     * MODIFIES : this.hp, this.task
      */
-    abstract spendTime(): void;
+    spendTime(): void {
+        // タスクを完了している場合、次のタスクを決める
+        if (!this.task) {
+            this.determineTask();
+        }
+
+        // タスクに従って行動する
+        if (this.task instanceof Sleeping) {
+            this.task.handleSleep(this);
+        } else if (this.task instanceof Walking) {
+            Walking.handleWalking(this);
+        }
+
+        // hpを更新する（基礎代謝）
+        this.timeCounter += 1;
+        this.timeCounter %= 3;
+        if (this.timeCounter === 0) {
+            this.changeHp(-1);
+        }
+    }
 
     /**
      * ランダムにタスクを決める
@@ -94,7 +130,7 @@ export abstract class Human {
         this.name = name;
         this.homePos = homePos;
         this._pos = homePos;
-        this.hp = hp;
+        this._hp = hp;
         this.job = job;
         this.color = color;
         this.character = character;

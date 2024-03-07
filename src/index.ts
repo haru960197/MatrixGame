@@ -30,7 +30,15 @@ function intervalFunc(): void {
     // 1単位時間ごとに盤面を更新する
     gameState.humans.forEach((human) => human.spendTime());
     // 時間を10分進める
-    gameState.time.h = (gameState.time.h + 1) % 24;
+    gameState.time.m += 10;
+    if (gameState.time.m >= 60) {
+        gameState.time.m %= 60;
+        gameState.time.h += 1;
+        if (gameState.time.h >= 24) {
+            gameState.time.h %= 24;
+            gameState.time.d += 1;
+        }
+    }
     // 盤面などを更新
     drawField();
     drawTime();

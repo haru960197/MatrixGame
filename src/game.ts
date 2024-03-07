@@ -1,12 +1,12 @@
 import { InterfaceMode } from "./function/handleMode";
-import { Job, Human } from "./class/Human/Human";
+import { Human } from "./class/Human/Human";
 import { Asset } from "./class/Asset/Asset";
 
 /* 盤面のサイズ */
 export const FIELD_SIZE = 8;
 
 export let gameState: GameState = {
-    time: { d: 1, h: 14, m: 30 },
+    time: { d: 0, h: 12, m: 0 },
     mode: { id: "neutral" },
     humans: [],
     assets: [],

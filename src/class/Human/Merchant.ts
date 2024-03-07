@@ -6,25 +6,6 @@ import { getRandomPos } from "../../function/utils";
 
 export class Merchant extends Human {
     /**
-     * 1単位時間過ごす
-     */
-    spendTime(): void {
-        // タスクを完了している場合、次のタスクを決める
-        if (!this.task) {
-            this.determineTask();
-        }
-
-        // タスクに従って行動する
-        if (this.task instanceof Sleeping) {
-            this.task.handleSleep(this);
-        } else if (this.task instanceof Walking) {
-            Walking.handleWalking(this);
-        }
-
-        // TODO : hpを更新する
-    }
-
-    /**
      * ランダムにタスクを決める
      */
     determineTask(): void {
