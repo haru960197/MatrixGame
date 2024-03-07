@@ -64,7 +64,6 @@ function addHuman(newHuman: Human) {
 }
 
 export function handleAddHumanClick(): void {
-    console.log("hoge");
     const radioInputs = document.getElementsByName("typeForm") as NodeListOf<HTMLInputElement>;
     let job: Job | null = null;
     radioInputs.forEach((radio: HTMLInputElement) => {
@@ -76,7 +75,6 @@ export function handleAddHumanClick(): void {
     if (!job) {
         throw new Error("job is not selected. Can't enter add-human mode.");
     }
-    console.log(job);
 
     enterAddHumanMode(job);
 }

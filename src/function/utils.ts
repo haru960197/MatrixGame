@@ -33,7 +33,7 @@ export function isNight(): boolean {
  * ランダムな位置を生成し、返す
  * @returns [x, y]
  */
-export function createRandomPos(): Position {
+export function getRandomPos(): Position {
     const x = Math.floor(Math.random() * FIELD_SIZE);
     const y = Math.floor(Math.random() * FIELD_SIZE);
     return { x, y };

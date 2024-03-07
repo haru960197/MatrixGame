@@ -2,6 +2,7 @@ import { gameState, FIELD_SIZE } from "../game";
 import { House } from "../class/Asset/House";
 import { Human } from "../class/Human/Human";
 import { isNight } from "./utils";
+import { Sleeping } from "../class/Task/Sleeping";
 
 /**
  * gameStateに従って盤面を更新する
@@ -39,16 +40,15 @@ export function drawField(): void {
             // クラスをリセットする
             squareEl.classList.remove(asset.className);
             // 適切な画像表示のため、状況に応じたクラスを付与する
-            // TODO：時間や状況に応じたclassNameを再検討する
-            // TODO：寝ているときはnight-houseにする
-            if (asset.owner.pos.x === x && asset.owner.pos.y === y) {
-                // 所有者が家にいる場合
-                if (isNight()) {
+            if (asset.isThereOwner()) {
+                if (asset.owner.task instanceof Sleeping
+                        && asset.owner.task.isSleeping) {
+                    asset.className = 'sleeping-house';
+                } else if (isNight()) {
                     asset.className = 'evening-house';
                 } else {
                     asset.className = 'normal-house';
                 }
-
                 // 画像を表示するためにマスの文字列を消す
                 squareEl.textContent = "";
             } else {

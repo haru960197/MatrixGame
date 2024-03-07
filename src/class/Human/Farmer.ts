@@ -1,6 +1,8 @@
 import { Human, Character } from "./Human";
 import { gameState, Position } from "../../game";
-import { Task } from "../Task/Task";
+import { Sleeping } from "../Task/Sleeping";
+import { Walking } from "../Task/Walking";
+import { getRandomPos } from "../../function/utils";
 
 export class Farmer extends Human {
     /**
@@ -13,13 +15,10 @@ export class Farmer extends Human {
         }
 
         // タスクに従って行動する
-        switch (this.task?.what) {
-            case 'sleep':
-                Task.handleSleep(this);
-                break;
-            case 'walking':
-                Task.handleWalking(this);
-                break;
+        if (this.task instanceof Sleeping) {
+            this.task.handleSleep(this);
+        } else if (this.task instanceof Walking) {
+            Walking.handleWalking(this);
         }
 
         // TODO : hpを更新する
@@ -34,11 +33,12 @@ export class Farmer extends Human {
         if (16 < gameState.time.h) {
             // 寝る
             console.log("眠ります");
-            this.task = { what: 'sleep', where: this.homePos }
+            this.task = new Sleeping(this.homePos);
         } else {
             // 散歩する
-            console.log("(5, 5)へ向かいます");
-            this.task = { what: 'walking', where: { x: 5, y: 5 } }
+            const dest: Position = getRandomPos();
+            console.log(`(${dest.x}, ${dest.y})へ向かいます`);
+            this.task = new Walking(dest);
         }
     }
 

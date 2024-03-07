@@ -115,6 +115,7 @@ export type Character = {
 const INF = 100000;
 const V = FIELD_SIZE * FIELD_SIZE;
 // 隣接行列
+// TODO : Assetをよけるために、Assetの位置をcostに反映させる
 const cost: number[][] = Array.from({ length: V })
                             .map(n => Array.from({ length: V }).map(n => INF));
 for (let y = 0; y < FIELD_SIZE; y++) {
