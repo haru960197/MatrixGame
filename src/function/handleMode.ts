@@ -9,6 +9,7 @@ export type InterfaceMode = {
   } | {
     id: 'selectHuman';
   };
+  
 /**
  * 位置の選択モードに遷移し、Square上でホバーすると色が変わるようになる
  */

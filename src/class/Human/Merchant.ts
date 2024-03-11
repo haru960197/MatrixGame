@@ -2,7 +2,7 @@ import { Human, Character } from "./Human";
 import { gameState, Position } from "../../game";
 import { Sleeping } from "../Task/Sleeping";
 import { Walking } from "../Task/Walking";
-import { getRandomPos } from "../../function/utils";
+import { getAssetFromPos, getRandomPos } from "../../function/utils";
 
 export class Merchant extends Human {
     /**
@@ -17,7 +17,9 @@ export class Merchant extends Human {
             this.task = new Sleeping(this.homePos);
         } else {
             // 散歩する
-            const dest: Position = getRandomPos();
+            let dest: Position = getRandomPos();
+            // 目的地がアセットであってはならない
+            while (getAssetFromPos(dest) !== undefined) dest = getRandomPos();
             console.log(`(${dest.x}, ${dest.y})へ向かいます`);
             this.task = new Walking(dest);
         }

@@ -3,6 +3,7 @@ import { Task } from "../Task/Task";
 import { FIELD_SIZE } from "../../game";
 import { Sleeping } from "../Task/Sleeping";
 import { Walking } from "../Task/Walking";
+import { getAssetFromPos } from "../../function/utils";
 
 export abstract class Human {
     static humanNum = 1;
@@ -85,6 +86,12 @@ export abstract class Human {
         // 最短経路の直前の頂点
         const prevPos: Position[] = Array.from({ length: V }).map(n => ({ x: -1, y: -1 }));
 
+        const destIsAsset = getAssetFromPos(dest) !== undefined;
+        if (destIsAsset) {
+            // 目的地点がアセットならば、障害物でなくする
+            removeObstacleFromCostMap(dest);
+        }
+
         while (true) {
             let v = -1;
 
@@ -111,6 +118,11 @@ export abstract class Human {
         }
 
         this.pos = destToCurPosPath[destToCurPosPath.length - 2];
+
+        if (destIsAsset) {
+            // 目的地点がアセットならば、再び障害物として登録する
+            addObstacleToCostMap(dest);
+        }
     }
 
     constructor(
@@ -145,58 +157,78 @@ export type Character = {
     wisdom: number;
 }
 
-/**
- * dijkstraに必要な変数
- */
+
+// dijkstraに必要な変数
 const INF = 100000;
 const V = FIELD_SIZE * FIELD_SIZE;
 // 隣接行列
-// TODO : Assetをよけるために、Assetの位置をcostに反映させる
 const cost: number[][] = Array.from({ length: V })
                             .map(n => Array.from({ length: V }).map(n => INF));
-for (let y = 0; y < FIELD_SIZE; y++) {
-    for (let x = 0; x < FIELD_SIZE; x++) {
-        if (y == 0 && x == 0) {
-            // 左上の隅
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x + 1)] = 1;
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y + 1) + x] = 1;
-        } else if (y == 0 && x == FIELD_SIZE - 1) {
-            // 右上の隅
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x - 1)] = 1;
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y + 1) + x] = 1;
-        } else if (y == FIELD_SIZE - 1 && x == 0) {
-            // 左下の隅
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y - 1) + x] = 1;
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x + 1)] = 1;
-        } else if (y == FIELD_SIZE - 1 && x == FIELD_SIZE - 1) {
-            // 右下の隅
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y - 1) + x] = 1;
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x - 1)] = 1;
-        } else if (y == 0) {
-            // 上辺
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x - 1)] = 1; // ←
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y + 1) + x] = 1; // ↓
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x + 1)] = 1; // →
-        } else if (x == 0) {
-            // 左辺
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y - 1) + x] = 1; // ↑
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x + 1)] = 1; // →
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y + 1) + x] = 1; // ↓
-        } else if (x == FIELD_SIZE - 1) {
-            // 右辺
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y - 1) + x] = 1; // ↑
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x - 1)] = 1; // ←
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y + 1) + x] = 1; // ↓
-        } else if (y == FIELD_SIZE - 1) {
-            // 下辺
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x - 1)] = 1; // ←
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y - 1) + x] = 1; // ↑
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x + 1)] = 1; // →
-        } else {
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y - 1) + x] = 1; // ↑
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x + 1)] = 1; // →
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * (y + 1) + x] = 1; // ↓
-            cost[FIELD_SIZE * y + x][FIELD_SIZE * y + (x - 1)] = 1; // ←
-        }
-    }
+
+// 隣接行列を初期化
+for (let y = 0; y < FIELD_SIZE; y++)
+    for (let x = 0; x < FIELD_SIZE; x++)
+        registerSquareToCostMap({ x, y });
+
+/**
+ * あるマスから、その上下左右のマスに移動できるようにcostマップに登録する
+ * @param pos 登録するマスの位置
+ */
+function registerSquareToCostMap(pos: Position) {
+    const deltaPositions: Position[] = [
+        { x: -1, y: 0 },
+        { x: 0,  y: -1 },
+        { x: +1, y: 0 },
+        { x: 0,  y: +1 },
+    ];
+
+    // posの上下左右のマスへ、posからエッジを生やす
+    deltaPositions.forEach((deltaPos) => {
+        const x = pos.x + deltaPos.x;
+        const y = pos.y + deltaPos.y;
+        if (x < 0 || x >= FIELD_SIZE || y < 0 || y >= FIELD_SIZE) return;
+        else cost[FIELD_SIZE * pos.y + pos.x][FIELD_SIZE * y + x] = 1;
+    });
+}
+
+/**
+ * costマップから障害物（通れないマス）を取り除く
+ * @param pos 障害物の位置
+ */
+export function removeObstacleFromCostMap(pos: Position) {
+    const deltaPositions: Position[] = [
+        { x: -1, y: 0 },
+        { x: 0,  y: -1 },
+        { x: +1, y: 0 },
+        { x: 0,  y: +1 },
+    ];
+
+    // posの上下左右のマスから、posへのエッジを生やして、posに行けるようにする
+    deltaPositions.forEach((deltaPos) => {
+        const x = pos.x + deltaPos.x;
+        const y = pos.y + deltaPos.y;
+        if (x < 0 || x >= FIELD_SIZE || y < 0 || y >= FIELD_SIZE) return;
+        else cost[FIELD_SIZE * y + x][FIELD_SIZE * pos.y + pos.x] = 1;
+    });
+}
+
+/**
+ * costマップに障害物（通れないマス）を登録する
+ * @param pos 障害物の位置
+ */
+export function addObstacleToCostMap(pos: Position) {
+    const deltaPositions: Position[] = [
+        { x: -1, y: 0 },
+        { x: 0,  y: -1 },
+        { x: +1, y: 0 },
+        { x: 0,  y: +1 },
+    ];
+
+    // posの上下左右のマスから、posへのエッジを消して、posに行けないようにする
+    deltaPositions.forEach((deltaPos) => {
+        const x = pos.x + deltaPos.x;
+        const y = pos.y + deltaPos.y;
+        if (x < 0 || x >= FIELD_SIZE || y < 0 || y >= FIELD_SIZE) return;
+        else cost[FIELD_SIZE * y + x][FIELD_SIZE * pos.y + pos.x] = INF;
+    });
 }

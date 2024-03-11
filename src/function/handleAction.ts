@@ -1,11 +1,12 @@
-import { gameState, HTMLEvent, FIELD_SIZE } from "../game";
-import { Human, Job } from "../class/Human/Human";
+import { gameState, FIELD_SIZE } from "../game";
+import { Human, Job, addObstacleToCostMap } from "../class/Human/Human";
 import { Farmer } from "../class/Human/Farmer";
 import { Merchant } from "../class/Human/Merchant";
 import { House } from "../class/Asset/House";
 import { drawField } from "./draw";
 import { exitAddHumanMode, enterAddHumanMode, exitSelectHumanMode } from "./handleMode";
 import { getHumansFromPos } from "./utils";
+import { Asset } from "../class/Asset/Asset";
 
 /**
  * Squareがクリックされたときに呼ばれ、現在のモードに従って処理を行う
@@ -58,11 +59,22 @@ function addHuman(newHuman: Human) {
     // 人を追加
     gameState.humans.push(newHuman);
     // 家を追加
-    gameState.assets.push(
-        new House({ x, y }, newHuman)
-    );
+    addAsset(new House({ x, y }, newHuman), true);
 }
 
+/**
+ * gameStateにアセットを追加。isObstacleが真なら障害物としてcostマップに登録する
+ * @param newAsset 追加するアセット
+ * @param isObstacle 障害物であるか否か
+ */
+function addAsset(newAsset: Asset, isObstacle: boolean) {
+    gameState.assets.push(newAsset);
+    if (isObstacle) addObstacleToCostMap(newAsset.pos);
+}
+
+/**
+ * addHumanボタンをクリックした際の処理を行う
+ */
 export function handleAddHumanClick(): void {
     const radioInputs = document.getElementsByName("typeForm") as NodeListOf<HTMLInputElement>;
     let job: Job | null = null;
