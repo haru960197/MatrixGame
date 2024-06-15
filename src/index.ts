@@ -61,16 +61,27 @@ export function switchInterval(): void {
 }
 
 /**
- * 最大4倍までインターバルの時間を速くする
- * 現在4倍速であれば、デフォルト値に戻す
+ * 最大8倍までインターバルの時間を速くする
+ * 現在8倍速であれば、デフォルト値に戻す
  */
 export function doubleIntervalSpeed(): void {
-    if (intervalMsec == DEFAULT_INTERVAL_MSEC / 4) {
+    let speed = DEFAULT_INTERVAL_MSEC / intervalMsec;
+
+    // 速度を変更
+    if (speed == 8) {
         intervalMsec = DEFAULT_INTERVAL_MSEC;
     } else {
         intervalMsec /= 2;
     }
 
+    // 倍速ボタンの速度を更新
+    const button = document.getElementById("doubleSpeedButton");
+    if (button) {
+        speed = DEFAULT_INTERVAL_MSEC / intervalMsec;
+        button.innerText = `speed ×${speed}`;
+    }
+
+    // インターバルを設定
     if (isLooping) {
         clearInterval(intervalId);
         intervalId = setInterval(intervalFunc, intervalMsec);
