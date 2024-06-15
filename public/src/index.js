@@ -2,34 +2,29 @@ import { drawField, drawTime } from "./function/draw";
 import { handleAddHumanClick, handleClickSquare } from "./function/handleAction";
 import { enterSelectHumanMode } from "./function/handleMode";
 import { FIELD_SIZE, gameState } from "./game";
-
 const DEFAULT_INTERVAL_MSEC = 1000;
-let intervalId: number;
-let isLooping: boolean;
+let intervalId;
+let isLooping;
 let intervalMsec = 1000;
-
 // ページが読み込まれたときの処理
 document.addEventListener("DOMContentLoaded", (e) => {
     // 1秒ごとにintervalFuncを実行するように設定
     intervalId = setInterval(intervalFunc, DEFAULT_INTERVAL_MSEC);
     isLooping = true;
-
     // イベントハンドラーを登録
     document.getElementById("selectHumanButton")?.addEventListener("click", enterSelectHumanMode);
     document.getElementById("switchIntervalButton")?.addEventListener("click", switchInterval);
     document.getElementById("addHumanButton")?.addEventListener("click", handleAddHumanClick);
     document.getElementById("doubleSpeedButton")?.addEventListener("click", doubleIntervalSpeed);
-
     // 描画
     createField();
     drawField();
     drawTime();
 });
-
 /**
  * 1単位時間ごとに呼ばれる関数
  */
-function intervalFunc(): void {
+function intervalFunc() {
     // 1単位時間ごとに盤面を更新する
     gameState.humans.forEach((human) => human.spendTime());
     // 時間を10分進める
@@ -46,46 +41,44 @@ function intervalFunc(): void {
     drawField();
     drawTime();
 }
-
 /**
  * インターバルのオン/オフを切り替える
  */
-export function switchInterval(): void {
+export function switchInterval() {
     if (isLooping) {
         clearInterval(intervalId);
         isLooping = false;
-    } else {
+    }
+    else {
         intervalId = setInterval(intervalFunc, intervalMsec);
         isLooping = true;
     }
 }
-
 /**
  * 最大4倍までインターバルの時間を速くする
  * 現在4倍速であれば、デフォルト値に戻す
  */
-export function doubleIntervalSpeed(): void {
+export function doubleIntervalSpeed() {
     if (intervalMsec == DEFAULT_INTERVAL_MSEC / 4) {
         intervalMsec = DEFAULT_INTERVAL_MSEC;
-    } else {
+    }
+    else {
         intervalMsec /= 2;
     }
-
+    console.log(intervalMsec);
     if (isLooping) {
         clearInterval(intervalId);
         intervalId = setInterval(intervalFunc, intervalMsec);
     }
 }
-
 /**
  * FIELD_SIZE * FIELD_SIZE の盤面を作成する
  */
-function createField(): void {
+function createField() {
     const fieldEl = document.getElementById("field");
     if (!fieldEl) {
         throw new Error('<div id="field"></div> is null.');
     }
-
     for (let i = 0; i < FIELD_SIZE; i++) {
         // 行の要素を作成
         const lineEl = document.createElement("div");
@@ -103,3 +96,4 @@ function createField(): void {
         fieldEl.appendChild(lineEl);
     }
 }
+//# sourceMappingURL=index.js.map
